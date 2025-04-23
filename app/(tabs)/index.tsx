@@ -1,5 +1,6 @@
 
 import { StyleSheet, View, Text } from 'react-native';
+import MapView from 'react-native-maps';
 import ThemedButton from '../../components/custom/ThemedButton'
 
 export default function HomeScreen() {
@@ -9,6 +10,8 @@ export default function HomeScreen() {
     <View>
       <Text>Hello</Text>
      <ThemedButton text='Submit' onPress={() => console.log('Button pressed!')}/>
+
+     <MapView style={styles.map} />
     </View>
   );
 }
@@ -29,5 +32,9 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     position: 'absolute',
+  },
+  map: {
+    width: '100%',
+    height: '100%',
   },
 });
