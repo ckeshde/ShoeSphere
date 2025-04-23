@@ -1,13 +1,17 @@
 
 import { StyleSheet, Button, View, Text } from 'react-native';
+import ThemedButton from '../../components/custom/ThemedButton'
 
 export default function HomeScreen() {
+ 
+
   return (
     <View>
       <Button
         title="Click me"
       />
       <Text>Hello</Text>
+     <ThemedButton text='Submit' onPress={() => console.log('Button pressed!')}/>
     </View>
   );
 }
