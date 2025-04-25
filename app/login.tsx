@@ -15,7 +15,7 @@ export default function LoginScreen() {
       // Use Firebase to login
       await signInWithEmailAndPassword(auth, email, password);
       console.log(" Login success")
-      Alert.alert('Welcome back!');
+      Alert.alert('Welcome!');
 
       // Jump to the main interface (tabs)
       router.replace('/(tabs)');
