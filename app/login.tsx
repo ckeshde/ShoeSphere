@@ -1,8 +1,10 @@
 import React, {useState} from 'react';
-import { View, Text, TextInput, Button, StyleSheet, Alert } from 'react-native';
+import { View, Text, TextInput, Button, StyleSheet, Alert, Image } from 'react-native';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from './firebaseConfig'; 
 import { useRouter } from 'expo-router'; // jump to another page
+
+
 
 export default function LoginScreen() {
   const [email, setEmail] = useState(''); // store email
@@ -27,6 +29,9 @@ export default function LoginScreen() {
 
   return (
     <View style={styles.container}>
+       <Image source = {require('../assets/logo.png')}
+                     style = {{width: 120, height: 120, borderRadius: 60, marginBottom: 20, alignSelf: 'center'}}
+              />
       <Text style={styles.title}>Login ShoeSphere </Text>
 
       <TextInput
@@ -58,19 +63,27 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: 'center',
-    padding: 20
+    alignItems: 'center',
+    backgroundColor: '#ffffff',
+    paddingHorizontal: 20,
+    // padding: 20
   },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    marginBottom: 24,
+    color: '#333',
+    marginBottom: 20,
     textAlign: 'center'
   },
   input: {
+    width: '100%',
+    height: 50,
     borderWidth: 1,
+    borderRadius: 8,
     borderColor: '#ccc',
-    marginBottom: 12,
+    marginBottom: 15,
     padding: 10,
-    borderRadius: 6
+    paddingHorizontal: 10,
+    fontSize: 16
   }
 });
