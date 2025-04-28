@@ -20,7 +20,7 @@ export default function LoginScreen() {
       Alert.alert('Welcome!');
 
       // Jump to the main interface (tabs)
-      router.replace('/(tabs)');
+      router.replace('/');
     } catch (error: any) {
       console.log('Login fail', error.message)
       Alert.alert('Login fail', error.message);
