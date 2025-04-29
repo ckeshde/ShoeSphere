@@ -2,23 +2,29 @@
 import { StyleSheet, View, Text } from 'react-native';
 import MapView, { Marker, Circle, PROVIDER_GOOGLE } from 'react-native-maps';
 import StoreSearch from '../pages/storesearch';
-
 import { useEffect } from 'react';
 import { useRouter, useNavigationContainerRef } from 'expo-router';
+import { getAuth, onAuthStateChanged } from 'firebase/auth';
 
 
 export default function HomeScreen() {
 
   const router = useRouter();
+  const auth = getAuth();
 
   useEffect(() => {
-    // Delay the jump to ensure that the RootLayout is mounted
-    const timeout = setTimeout(() => {
-      router.replace('./login');
-    }, 100); // 100ms delay
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        // it will jump to homepage when user login
+        router.replace('/explore');
+      } else {
+        router.replace('/login');
+      }
+    });
 
-    return () => clearTimeout(timeout);
+    return () => unsubscribe();
   }, []);
+  
 
   return (
     <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
