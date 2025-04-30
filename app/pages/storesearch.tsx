@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { StyleSheet, View, Text, TextInput, Button, Alert } from 'react-native';
-import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
+import MapView, { Marker, PROVIDER_DEFAULT } from 'react-native-maps';
 import { useRouter } from 'expo-router';
+import { useCurrentLocation } from '../../hooks/useCurrentLocation'; // ✅ adjust the path if needed
 
 type Coordinates = {
   latitude: number;
@@ -12,10 +13,10 @@ export default function StoreSearch() {
   const [storeLocation, setStoreLocation] = useState<Coordinates | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [storeNotFound, setStoreNotFound] = useState(false);
+  const { location, errorMsg } = useCurrentLocation(); // ✅ custom hook
 
   const router = useRouter();
 
-  // Sample store data (this can be expanded in the future)
   const store = {
     name: 'Nike',
     coordinate: {
@@ -30,19 +31,16 @@ export default function StoreSearch() {
 
   const handleSearch = () => {
     if (searchQuery.toLowerCase() === store.name.toLowerCase()) {
-      // If search query matches the store name, update the coordinates
       setStoreLocation(store.coordinate);
-      setStoreNotFound(false); // Reset the "not found" state
+      setStoreNotFound(false);
     } else {
-      // If no store matches, show "not found" alert/message
       setStoreLocation(null);
-      setStoreNotFound(true); // Set the "not found" state to true
+      setStoreNotFound(true);
       Alert.alert('Store Not Found', 'The store name does not match any location.');
     }
   };
 
-  const handleMarkerPress = (marker: any) => {
-    // Navigate to store.tsx and pass store details as params
+  const handleMarkerPress = () => {
     router.push({
       pathname: '/pages/store',
       params: {
@@ -56,10 +54,9 @@ export default function StoreSearch() {
   };
 
   return (
-    <View style={styles.screen}>
+    <View>
       <Text style={styles.title}>Search for a Shoe Store</Text>
 
-      {/* Search input field */}
       <TextInput
         style={styles.input}
         placeholder="Enter store name"
@@ -67,44 +64,41 @@ export default function StoreSearch() {
         onChangeText={(text) => setSearchQuery(text)}
       />
 
-      {/* Search button */}
       <Button title="Search" onPress={handleSearch} />
 
-      {/* Display map */}
       <View style={styles.mapContainer}>
-        <MapView
-          provider={PROVIDER_GOOGLE}
-          style={styles.map}
-          initialRegion={{
-            latitude: -37.81,
-            longitude: 144.96,
-            latitudeDelta: 0.01,
-            longitudeDelta: 0.01,
-          }}
-        >
-          {storeLocation && (
-            <Marker
-              coordinate={storeLocation}
-              title={store.name}
-              description={store.address}
-              onPress={handleMarkerPress} // Navigate to the store details page when tapped
-            />
-          )}
-        </MapView>
+        {location ? (
+          <MapView
+            provider={PROVIDER_DEFAULT}
+            style={styles.map}
+            initialRegion={{
+              latitude: location.latitude,
+              longitude: location.longitude,
+              latitudeDelta: 0.01,
+              longitudeDelta: 0.01,
+            }}
+          >
+            <Marker coordinate={location} title="You are here" />
+            {storeLocation && (
+              <Marker
+                coordinate={storeLocation}
+                title={store.name}
+                description={store.address}
+                onPress={handleMarkerPress}
+              />
+            )}
+          </MapView>
+        ) : (
+          <Text>{errorMsg || 'Fetching location...'}</Text>
+        )}
       </View>
 
-      {/* Show "Not Found" message */}
       {storeNotFound && <Text style={styles.notFound}>Store not found. Please try again.</Text>}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-    padding: 16,
-    backgroundColor: '#fff',
-  },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
@@ -119,7 +113,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   mapContainer: {
-    height: 300,
+    height: '100%',
     borderRadius: 10,
     overflow: 'hidden',
     marginBottom: 20,
