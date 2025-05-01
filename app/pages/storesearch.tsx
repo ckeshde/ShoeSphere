@@ -1,46 +1,76 @@
-import { useState } from 'react';
-import { StyleSheet, View, Text, TextInput, Button, Alert } from 'react-native';
+import { useState, useEffect } from 'react';
+import {
+  View,
+  Text,
+  TextInput,
+  StyleSheet,
+  Alert,
+  TouchableOpacity,
+} from 'react-native';
 import MapView, { Marker, PROVIDER_DEFAULT } from 'react-native-maps';
 import { useRouter } from 'expo-router';
-import { useCurrentLocation } from '../../hooks/useCurrentLocation'; // ✅ adjust the path if needed
-
-type Coordinates = {
-  latitude: number;
-  longitude: number;
-};
+import { collection, getDocs } from 'firebase/firestore';
+import { db } from '../firebaseConfig';
+import { useCurrentLocation } from '../../hooks/useCurrentLocation';
+import { filterStoresByNameAndDistance, Store, convertToMeters } from '../../utils/filterStores';
+import Icon from 'react-native-vector-icons/FontAwesome';
 
 export default function StoreSearch() {
-  const [storeLocation, setStoreLocation] = useState<Coordinates | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [storeNotFound, setStoreNotFound] = useState(false);
-  const { location, errorMsg } = useCurrentLocation(); // ✅ custom hook
+  const [matchedStores, setMatchedStores] = useState<Store[]>([]);
+  const [allStores, setAllStores] = useState<Store[]>([]);
+  const [selectedRadius, setSelectedRadius] = useState(5000);
 
+  const { location, errorMsg } = useCurrentLocation();
   const router = useRouter();
 
-  const store = {
-    name: 'Nike',
-    coordinate: {
-      latitude: -37.809970468810995,
-      longitude: 144.96313006932527,
-    },
-    address: '211 La Trobe St, Melbourne VIC 3000, Australia',
-    phone: '+61 3 8663 8000',
-    openingHours: '9:00 AM',
-    closingHours: '9:00 PM',
+  const handleRadiusSelect = (radiusInKm: number) => {
+    setSelectedRadius(convertToMeters(radiusInKm));
   };
 
-  const handleSearch = () => {
-    if (searchQuery.toLowerCase() === store.name.toLowerCase()) {
-      setStoreLocation(store.coordinate);
-      setStoreNotFound(false);
-    } else {
-      setStoreLocation(null);
-      setStoreNotFound(true);
-      Alert.alert('Store Not Found', 'The store name does not match any location.');
-    }
-  };
+  useEffect(() => {
+    const fetchStores = async () => {
+      try {
+        const storesRef = collection(db, 'stores');
+        const querySnapshot = await getDocs(storesRef);
+        const stores: Store[] = [];
 
-  const handleMarkerPress = () => {
+        querySnapshot.forEach((doc) => {
+          const data = doc.data();
+          stores.push({
+            id: doc.id,
+            name: data.name,
+            latitude: data.latitude,
+            longitude: data.longitude,
+            address: data.address,
+            phone: data.phone,
+            openingHours: data.openingHours,
+            closingHours: data.closingHours,
+          });
+        });
+
+        setAllStores(stores);
+      } catch (error) {
+        console.error('Error fetching stores:', error);
+        Alert.alert('Error', 'Could not fetch stores from database.');
+      }
+    };
+
+    fetchStores();
+  }, []);
+
+  useEffect(() => {
+    console.log("searchQuery:", searchQuery); // Debugging log
+    const filtered = filterStoresByNameAndDistance(
+      allStores,
+      searchQuery,
+      location,
+      selectedRadius
+    );
+    setMatchedStores(filtered);
+  }, [searchQuery, allStores, location, selectedRadius]);
+
+  const handleMarkerPress = (store: Store) => {
     router.push({
       pathname: '/pages/store',
       params: {
@@ -55,16 +85,43 @@ export default function StoreSearch() {
 
   return (
     <View>
-      <Text style={styles.title}>Search for a Shoe Store</Text>
+      <Text style={styles.title}>Search for a Store</Text>
 
       <TextInput
         style={styles.input}
         placeholder="Enter store name"
         value={searchQuery}
-        onChangeText={(text) => setSearchQuery(text)}
+        onChangeText={(text) => {
+          console.log("User typing:", text); // Debugging log
+          setSearchQuery(text);
+        }}
       />
 
-      <Button title="Search" onPress={handleSearch} />
+      {/* Radius filter buttons */}
+      <View style={styles.radiusContainer}>
+        <Text style={styles.radiusLabel}>Filter by distance:</Text>
+        <View style={styles.buttonGroup}>
+          {[5000, 10000, 30000].map((radius) => (
+            <TouchableOpacity
+              key={radius}
+              style={[
+                styles.radiusButton,
+                selectedRadius === radius && styles.radiusButtonSelected,
+              ]}
+              onPress={() => setSelectedRadius(radius)}
+            >
+              <Text
+                style={[
+                  styles.radiusButtonText,
+                  selectedRadius === radius && styles.radiusButtonTextSelected,
+                ]}
+              >
+                {radius / 1000} km
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      </View>
 
       <View style={styles.mapContainer}>
         {location ? (
@@ -78,22 +135,23 @@ export default function StoreSearch() {
               longitudeDelta: 0.01,
             }}
           >
-            <Marker coordinate={location} title="You are here" />
-            {storeLocation && (
+            <Marker coordinate={location} title="You are here">
+              <Icon name="map-marker" size={40} color="blue" />
+            </Marker>
+            {matchedStores.map((store) => (
               <Marker
-                coordinate={storeLocation}
+                key={store.id}
+                coordinate={{ latitude: store.latitude, longitude: store.longitude }}
                 title={store.name}
                 description={store.address}
-                onPress={handleMarkerPress}
+                onPress={() => handleMarkerPress(store)}
               />
-            )}
+            ))}
           </MapView>
         ) : (
           <Text>{errorMsg || 'Fetching location...'}</Text>
         )}
       </View>
-
-      {storeNotFound && <Text style={styles.notFound}>Store not found. Please try again.</Text>}
     </View>
   );
 }
@@ -108,9 +166,42 @@ const styles = StyleSheet.create({
   input: {
     borderWidth: 1,
     padding: 8,
-    marginBottom: 16,
+    marginBottom: 10,
     borderRadius: 4,
     fontSize: 16,
+    marginHorizontal: 10,
+  },
+  radiusContainer: {
+    marginVertical: 10,
+    alignItems: 'center',
+  },
+  radiusLabel: {
+    fontSize: 16,
+    marginBottom: 5,
+  },
+  buttonGroup: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+  },
+  radiusButton: {
+    paddingVertical: 6,
+    paddingHorizontal: 14,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    marginHorizontal: 5,
+  },
+  radiusButtonSelected: {
+    backgroundColor: '#007bff',
+    borderColor: '#007bff',
+  },
+  radiusButtonText: {
+    fontSize: 14,
+    color: '#333',
+  },
+  radiusButtonTextSelected: {
+    color: 'white',
+    fontWeight: 'bold',
   },
   mapContainer: {
     height: '100%',
