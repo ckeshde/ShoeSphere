@@ -5,6 +5,7 @@ import StoreSearch from '../pages/storesearch';
 import { useEffect } from 'react';
 import { useRouter, useNavigationContainerRef } from 'expo-router';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
+import SeedStores from '../../hooks/useAddStore';
 
 
 export default function HomeScreen() {
@@ -33,12 +34,13 @@ export default function HomeScreen() {
   );
 
 
-  return (
-    <View style={styles.screen}>
-      <Text>Hello</Text>
-      <StoreSearch />
-    </View>
-  );
+  // return (
+  //   <View style={styles.screen}>
+  //     <Text>Hello</Text>
+  //     <StoreSearch />
+  //     {/* <SeedStores/> */}
+  //   </View>
+  // );
 }
 
 const styles = StyleSheet.create({

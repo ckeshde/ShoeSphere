@@ -1,46 +1,72 @@
-import { useState } from 'react';
-import { StyleSheet, View, Text, TextInput, Button, Alert } from 'react-native';
-import MapView, { Marker, PROVIDER_DEFAULT } from 'react-native-maps';
+import { useState, useEffect } from 'react';
+import { View, Text, TextInput, StyleSheet, Alert } from 'react-native';
+import MapView, { Marker } from 'react-native-maps';
 import { useRouter } from 'expo-router';
-import { useCurrentLocation } from '../../hooks/useCurrentLocation'; // ✅ adjust the path if needed
+import { collection, getDocs } from 'firebase/firestore';
+import { db } from '../firebaseConfig';
+import { useCurrentLocation } from '../../hooks/useCurrentLocation';
+import Icon from 'react-native-vector-icons/FontAwesome'; 
 
-type Coordinates = {
+type Store = {
+  id: string;
+  name: string;
   latitude: number;
   longitude: number;
+  address: string;
+  phone: string;
+  openingHours: string;
+  closingHours: string;
 };
 
 export default function StoreSearch() {
-  const [storeLocation, setStoreLocation] = useState<Coordinates | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [storeNotFound, setStoreNotFound] = useState(false);
-  const { location, errorMsg } = useCurrentLocation(); // ✅ custom hook
-
+  const [matchedStores, setMatchedStores] = useState<Store[]>([]);
+  const { location, errorMsg } = useCurrentLocation();
   const router = useRouter();
 
-  const store = {
-    name: 'Nike',
-    coordinate: {
-      latitude: -37.809970468810995,
-      longitude: 144.96313006932527,
-    },
-    address: '211 La Trobe St, Melbourne VIC 3000, Australia',
-    phone: '+61 3 8663 8000',
-    openingHours: '9:00 AM',
-    closingHours: '9:00 PM',
-  };
+  const handleSearch = async () => {
+    try {
+      const storesRef = collection(db, 'stores');
+      const querySnapshot = await getDocs(storesRef);
 
-  const handleSearch = () => {
-    if (searchQuery.toLowerCase() === store.name.toLowerCase()) {
-      setStoreLocation(store.coordinate);
-      setStoreNotFound(false);
-    } else {
-      setStoreLocation(null);
-      setStoreNotFound(true);
-      Alert.alert('Store Not Found', 'The store name does not match any location.');
+      if (querySnapshot.empty) {
+        Alert.alert('Store Not Found', 'No stores found in Firestore.');
+        setMatchedStores([]);
+        return;
+      }
+
+      const stores: Store[] = [];
+      querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        stores.push({
+          id: doc.id,
+          name: data.name,
+          latitude: data.latitude,
+          longitude: data.longitude,
+          address: data.address,
+          phone: data.phone,
+          openingHours: data.openingHours,
+          closingHours: data.closingHours,
+        });
+      });
+
+      // Filter stores based on the search query (case-insensitive)
+      const filteredStores = stores.filter((store) =>
+        store.name.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+
+      if (filteredStores.length === 0) {
+        Alert.alert('Store Not Found', 'No matching store found.');
+      }
+
+      setMatchedStores(filteredStores);
+    } catch (error) {
+      console.error('Error fetching stores:', error);
+      Alert.alert('Error', 'Could not fetch stores from database.');
     }
   };
 
-  const handleMarkerPress = () => {
+  const handleMarkerPress = (store: Store) => {
     router.push({
       pathname: '/pages/store',
       params: {
@@ -55,23 +81,19 @@ export default function StoreSearch() {
 
   return (
     <View>
-      <Text style={styles.title}>Search for a Shoe Store</Text>
+      <Text style={styles.title}>Search for a Store</Text>
 
       <TextInput
         style={styles.input}
         placeholder="Enter store name"
         value={searchQuery}
-        onChangeText={(text) => setSearchQuery(text)}
-        returnKeyType="search"
+        onChangeText={setSearchQuery}
         onSubmitEditing={handleSearch}
       />
-
-      {/* <Button title="Search" onPress={handleSearch} /> */}
 
       <View style={styles.mapContainer}>
         {location ? (
           <MapView
-            provider={PROVIDER_DEFAULT}
             style={styles.map}
             initialRegion={{
               latitude: location.latitude,
@@ -80,22 +102,23 @@ export default function StoreSearch() {
               longitudeDelta: 0.01,
             }}
           >
-            <Marker coordinate={location} title="You are here" />
-            {storeLocation && (
+            <Marker coordinate={location} title="You are here" >
+            <Icon name="map-marker" size={40} color="blue" />
+            </Marker>
+            {matchedStores.map((store) => (
               <Marker
-                coordinate={storeLocation}
+                key={store.id}
+                coordinate={{ latitude: store.latitude, longitude: store.longitude }}
                 title={store.name}
                 description={store.address}
-                onPress={handleMarkerPress}
+                onPress={() => handleMarkerPress(store)}
               />
-            )}
+            ))}
           </MapView>
         ) : (
           <Text>{errorMsg || 'Fetching location...'}</Text>
         )}
       </View>
-
-      {storeNotFound && <Text style={styles.notFound}>Store not found. Please try again.</Text>}
     </View>
   );
 }
