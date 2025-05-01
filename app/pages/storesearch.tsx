@@ -62,9 +62,11 @@ export default function StoreSearch() {
         placeholder="Enter store name"
         value={searchQuery}
         onChangeText={(text) => setSearchQuery(text)}
+        returnKeyType="search"
+        onSubmitEditing={handleSearch}
       />
 
-      <Button title="Search" onPress={handleSearch} />
+      {/* <Button title="Search" onPress={handleSearch} /> */}
 
       <View style={styles.mapContainer}>
         {location ? (
