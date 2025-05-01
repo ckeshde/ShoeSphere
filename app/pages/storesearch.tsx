@@ -1,70 +1,74 @@
 import { useState, useEffect } from 'react';
-import { View, Text, TextInput, StyleSheet, Alert } from 'react-native';
-import MapView, { Marker } from 'react-native-maps';
+import {
+  View,
+  Text,
+  TextInput,
+  StyleSheet,
+  Alert,
+  TouchableOpacity,
+} from 'react-native';
+import MapView, { Marker, PROVIDER_DEFAULT } from 'react-native-maps';
 import { useRouter } from 'expo-router';
 import { collection, getDocs } from 'firebase/firestore';
 import { db } from '../firebaseConfig';
 import { useCurrentLocation } from '../../hooks/useCurrentLocation';
-import Icon from 'react-native-vector-icons/FontAwesome'; 
-
-type Store = {
-  id: string;
-  name: string;
-  latitude: number;
-  longitude: number;
-  address: string;
-  phone: string;
-  openingHours: string;
-  closingHours: string;
-};
+import { filterStoresByNameAndDistance, Store, convertToMeters } from '../../utils/filterStores';
+import Icon from 'react-native-vector-icons/FontAwesome';
 
 export default function StoreSearch() {
   const [searchQuery, setSearchQuery] = useState('');
   const [matchedStores, setMatchedStores] = useState<Store[]>([]);
+  const [allStores, setAllStores] = useState<Store[]>([]);
+  const [selectedRadius, setSelectedRadius] = useState(5000);
+
   const { location, errorMsg } = useCurrentLocation();
   const router = useRouter();
 
-  const handleSearch = async () => {
-    try {
-      const storesRef = collection(db, 'stores');
-      const querySnapshot = await getDocs(storesRef);
-
-      if (querySnapshot.empty) {
-        Alert.alert('Store Not Found', 'No stores found in Firestore.');
-        setMatchedStores([]);
-        return;
-      }
-
-      const stores: Store[] = [];
-      querySnapshot.forEach((doc) => {
-        const data = doc.data();
-        stores.push({
-          id: doc.id,
-          name: data.name,
-          latitude: data.latitude,
-          longitude: data.longitude,
-          address: data.address,
-          phone: data.phone,
-          openingHours: data.openingHours,
-          closingHours: data.closingHours,
-        });
-      });
-
-      // Filter stores based on the search query (case-insensitive)
-      const filteredStores = stores.filter((store) =>
-        store.name.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-
-      if (filteredStores.length === 0) {
-        Alert.alert('Store Not Found', 'No matching store found.');
-      }
-
-      setMatchedStores(filteredStores);
-    } catch (error) {
-      console.error('Error fetching stores:', error);
-      Alert.alert('Error', 'Could not fetch stores from database.');
-    }
+  const handleRadiusSelect = (radiusInKm: number) => {
+    setSelectedRadius(convertToMeters(radiusInKm));
   };
+
+  useEffect(() => {
+    const fetchStores = async () => {
+      try {
+        const storesRef = collection(db, 'stores');
+        const querySnapshot = await getDocs(storesRef);
+        const stores: Store[] = [];
+
+        querySnapshot.forEach((doc) => {
+          const data = doc.data();
+          stores.push({
+            id: doc.id,
+            name: data.name,
+            latitude: data.latitude,
+            longitude: data.longitude,
+            address: data.address,
+            phone: data.phone,
+            openingHours: data.openingHours,
+            closingHours: data.closingHours,
+          });
+        });
+
+        setAllStores(stores);
+      } catch (error) {
+        console.error('Error fetching stores:', error);
+        Alert.alert('Error', 'Could not fetch stores from database.');
+      }
+    };
+
+    fetchStores();
+  }, []);
+
+  useEffect(() => {
+    console.log("searchQuery:", searchQuery); // Debugging log
+    const filtered = filterStoresByNameAndDistance(
+      allStores,
+      searchQuery,
+      location,
+      selectedRadius
+    );
+    setMatchedStores(filtered);
+  }, [searchQuery, allStores, location, selectedRadius]);
 
   const handleMarkerPress = (store: Store) => {
     router.push({
@@ -87,13 +91,42 @@ export default function StoreSearch() {
         style={styles.input}
         placeholder="Enter store name"
         value={searchQuery}
-        onChangeText={setSearchQuery}
-        onSubmitEditing={handleSearch}
+        onChangeText={(text) => {
+          console.log("User typing:", text); // Debugging log
+          setSearchQuery(text);
+        }}
       />
+
+      {/* Radius filter buttons */}
+      <View style={styles.radiusContainer}>
+        <Text style={styles.radiusLabel}>Filter by distance:</Text>
+        <View style={styles.buttonGroup}>
+          {[5000, 10000, 30000].map((radius) => (
+            <TouchableOpacity
+              key={radius}
+              style={[
+                styles.radiusButton,
+                selectedRadius === radius && styles.radiusButtonSelected,
+              ]}
+              onPress={() => setSelectedRadius(radius)}
+            >
+              <Text
+                style={[
+                  styles.radiusButtonText,
+                  selectedRadius === radius && styles.radiusButtonTextSelected,
+                ]}
+              >
+                {radius / 1000} km
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      </View>
 
       <View style={styles.mapContainer}>
         {location ? (
           <MapView
+            provider={PROVIDER_DEFAULT}
             style={styles.map}
             initialRegion={{
               latitude: location.latitude,
@@ -102,8 +135,8 @@ export default function StoreSearch() {
               longitudeDelta: 0.01,
             }}
           >
-            <Marker coordinate={location} title="You are here" >
-            <Icon name="map-marker" size={40} color="blue" />
+            <Marker coordinate={location} title="You are here">
+              <Icon name="map-marker" size={40} color="blue" />
             </Marker>
             {matchedStores.map((store) => (
               <Marker
@@ -133,9 +166,42 @@ const styles = StyleSheet.create({
   input: {
     borderWidth: 1,
     padding: 8,
-    marginBottom: 16,
+    marginBottom: 10,
     borderRadius: 4,
     fontSize: 16,
+    marginHorizontal: 10,
+  },
+  radiusContainer: {
+    marginVertical: 10,
+    alignItems: 'center',
+  },
+  radiusLabel: {
+    fontSize: 16,
+    marginBottom: 5,
+  },
+  buttonGroup: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+  },
+  radiusButton: {
+    paddingVertical: 6,
+    paddingHorizontal: 14,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    marginHorizontal: 5,
+  },
+  radiusButtonSelected: {
+    backgroundColor: '#007bff',
+    borderColor: '#007bff',
+  },
+  radiusButtonText: {
+    fontSize: 14,
+    color: '#333',
+  },
+  radiusButtonTextSelected: {
+    color: 'white',
+    fontWeight: 'bold',
   },
   mapContainer: {
     height: '100%',
