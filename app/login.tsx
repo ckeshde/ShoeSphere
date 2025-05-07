@@ -5,7 +5,6 @@ import { auth } from './firebaseConfig';
 import { useRouter } from 'expo-router'; // jump to another page
 
 
-
 export default function LoginScreen() {
   const [email, setEmail] = useState(''); // store email
   const [password, setPassword] = useState(''); // store password
