@@ -9,6 +9,8 @@ import { auth } from '../firebaseConfig';
 
 export default function SettingsScreen() {
 
+  const user = getAuth().currentUser;
+
   // when user click signout, it can jump to login page
   const handleLogout = async () => {
     try {
@@ -23,7 +25,7 @@ export default function SettingsScreen() {
 
     return (
       <View style={styles.container}>
-      <Text style={styles.title}>Setting</Text>
+      <Text style={styles.title}>Settings</Text>
 
       {/* user and email */}
       <View style={styles.profileContainer}>
@@ -37,18 +39,18 @@ export default function SettingsScreen() {
       {/* favorite button */}
       <TouchableOpacity style={styles.button} onPress={() => router.push('/favorites')}>
         <FontAwesome name="heart" size={20} color="red" style={styles.icon} />
-        <Text style={styles.buttonText}>My Favorite</Text>
+        <Text style={styles.buttonText}>My Favorites</Text>
       </TouchableOpacity>
 
       {/* review button */}
       <TouchableOpacity style={styles.button} onPress={() => router.push('../review')}>
         <Feather name="edit-3" size={20} color="blue" style={styles.icon} />
-        <Text style={styles.buttonText}>My Review</Text>
+        <Text style={styles.buttonText}>My Reviews</Text>
       </TouchableOpacity>
 
       {/* log out button */}
       <TouchableOpacity onPress={handleLogout}>
-        <Text style={styles.logoutText}>退出登录</Text>
+        <Text style={styles.logoutText}>Log out</Text>
       </TouchableOpacity>
     </View>
     );
@@ -77,28 +79,28 @@ export default function SettingsScreen() {
       marginBottom: 10,
     },
     emailText: {
-      fontSize: 16,
+      fontSize: 20,
       fontWeight: '500',
     },
     button: {
       flexDirection: 'row',
       alignItems: 'center',
       backgroundColor: '#e0e0e0',
-      padding: 15,
+      padding: 18,
       borderRadius: 12,
       width: '80%',
-      marginBottom: 15,
+      marginBottom: 18,
     },
     icon: {
-      marginRight: 10,
+      marginRight: 15,
     },
     buttonText: {
-      fontSize: 16,
+      fontSize: 20,
     },
     logoutText: {
       marginTop: 25,
       color: 'red',
-      fontSize: 16,
+      fontSize: 20,
       fontWeight: 'bold',
     },
   });
