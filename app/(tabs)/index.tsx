@@ -5,38 +5,40 @@ import StoreSearch from '../pages/storesearch';
 import { useEffect } from 'react';
 import { useRouter, useNavigationContainerRef } from 'expo-router';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
+import SeedStores from '../../hooks/useAddStore';
 
 
 export default function HomeScreen() {
 
   const router = useRouter();
-  const auth = getAuth();
+  // const auth = getAuth();
 
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        // it will jump to homepage when user login
-        router.replace('/explore');
-      } else {
-        router.replace('/login');
-      }
-    });
+  // useEffect(() => {
+  //   const unsubscribe = onAuthStateChanged(auth, (user) => {
+  //     if (user) {
+  //       // it will jump to homepage when user login
+  //       router.replace('/explore');
+  //     } else {
+  //       router.replace('/login');
+  //     }
+  //   });
 
-    return () => unsubscribe();
-  }, []);
+  //   return () => unsubscribe();
+  // }, []);
   
 
-  return (
-    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-      <Text>It is redirecting to the login page...</Text>
-    </View>
-  );
+  // return (
+  //   <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+  //     <Text>It is redirecting to the login page...</Text>
+  //   </View>
+  // );
 
 
   return (
     <View style={styles.screen}>
       <Text>Hello</Text>
       <StoreSearch />
+      {/* <SeedStores/> */}
     </View>
   );
 }
