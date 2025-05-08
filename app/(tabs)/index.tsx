@@ -5,6 +5,7 @@ import StoreSearch from '../pages/storesearch';
 import { useEffect } from 'react';
 import { useRouter, useNavigationContainerRef } from 'expo-router';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
+import SeedStores from '../../hooks/useAddStore';
 
 
 export default function HomeScreen() {
@@ -16,7 +17,7 @@ export default function HomeScreen() {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
         // it will jump to homepage when user login
-        router.replace('/explore');
+        router.replace('/(tabs)');
       } else {
         router.replace('/login');
       }
@@ -26,17 +27,18 @@ export default function HomeScreen() {
   }, []);
   
 
-  return (
-    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-      <Text>It is redirecting to the login page...</Text>
-    </View>
-  );
+  // return (
+  //   <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+  //     <Text>It is redirecting to the login page...</Text>
+  //   </View>
+  // );
 
 
   return (
     <View style={styles.screen}>
       <Text>Hello</Text>
       <StoreSearch />
+      {/* <SeedStores/> */}
     </View>
   );
 }
