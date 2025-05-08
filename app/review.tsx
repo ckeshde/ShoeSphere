@@ -15,7 +15,7 @@ const reviews = [
         name: 'Musk',
         rating: '4.5',
         content: 'Very good shoe stroe!',
-        date: '2025-5-2',
+        date: '2025-4-28',
     },
 ]
 
