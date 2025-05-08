@@ -48,9 +48,16 @@ export default function SettingsScreen() {
         <Text style={styles.buttonText}>My Reviews</Text>
       </TouchableOpacity>
 
+      {/* review button
+      <TouchableOpacity style={styles.button} onPress={() => router.push('../review')}>
+        <Feather name="edit-3" size={20} color="blue" style={styles.icon} />
+        <Text style={styles.buttonText}>My Reviews</Text>
+      </TouchableOpacity>
+ */}
+
       {/* log out button */}
       <TouchableOpacity onPress={handleLogout}>
-        <Text style={styles.logoutText}>Log out</Text>
+        <Text style={styles.logoutText}>Sign out</Text>
       </TouchableOpacity>
     </View>
     );
