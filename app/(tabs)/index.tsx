@@ -11,20 +11,20 @@ import SeedStores from '../../hooks/useAddStore';
 export default function HomeScreen() {
 
   const router = useRouter();
-  // const auth = getAuth();
+  const auth = getAuth();
 
-  // useEffect(() => {
-  //   const unsubscribe = onAuthStateChanged(auth, (user) => {
-  //     if (user) {
-  //       // it will jump to homepage when user login
-  //       router.replace('/explore');
-  //     } else {
-  //       router.replace('/login');
-  //     }
-  //   });
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        // it will jump to homepage when user login
+        router.replace('/(tabs)');
+      } else {
+        router.replace('/login');
+      }
+    });
 
-  //   return () => unsubscribe();
-  // }, []);
+    return () => unsubscribe();
+  }, []);
   
 
   // return (
