@@ -76,9 +76,19 @@ export default function StoreSearch() {
   const handleMarkerPress = (store: Store) => {
     router.push({
       pathname: '/pages/store',
-      params: store,
+      params: {
+        id: String(store.id),
+        name: String(store.name),
+        address: String(store.address),
+        phone: String(store.phone),
+        openingHours: String(store.openingHours),
+        closingHours: String(store.closingHours),
+        latitude: String(store.latitude),
+        longitude: String(store.longitude),
+      },
     });
   };
+  
 
   return (
     <View>

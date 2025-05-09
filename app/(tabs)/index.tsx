@@ -13,34 +13,34 @@ export default function HomeScreen() {
   const router = useRouter();
   const auth = getAuth();
 
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        // it will jump to homepage when user login
-        router.replace('/(tabs)');
-      } else {
-        router.replace('/login');
-      }
-    });
+  // useEffect(() => {
+  //   const unsubscribe = onAuthStateChanged(auth, (user) => {
+  //     if (user) {
+  //       // it will jump to homepage when user login
+  //       router.replace('/(tabs)');
+  //     } else {
+  //       router.replace('/login');
+  //     }
+  //   });
 
-    return () => unsubscribe();
-  }, []);
+  //   return () => unsubscribe();
+  // }, []);
   
 
-  return (
-    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-      <Text>It is redirecting to the login page...</Text>
-    </View>
-  );
-
-
   // return (
-  //   <View style={styles.screen}>
-  //     <Text>Hello</Text>
-  //     <StoreSearch />
-  //     {/* <SeedStores/> */}
+  //   <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+  //     <Text>It is redirecting to the login page...</Text>
   //   </View>
   // );
+
+
+  return (
+    <View style={styles.screen}>
+      <Text>Hello</Text>
+      <StoreSearch />
+      {/* <SeedStores/> */}
+    </View>
+  );
 }
 
 const styles = StyleSheet.create({
