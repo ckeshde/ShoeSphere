@@ -6,6 +6,7 @@ import React from 'react';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import {StyleSheet, Text,TouchableOpacity, View} from 'react-native';
 import { auth } from '../firebaseConfig';
+import * as Linking from 'expo-linking';
 
 export default function SettingsScreen() {
   const [user] = useAuthState(auth);
@@ -56,6 +57,8 @@ export default function SettingsScreen() {
           <Text style={styles.itemText}>Help & Support</Text>
           <Feather name="chevron-right" size={20} color="#999" style={styles.arrow} />
         </TouchableOpacity>
+
+       
       </View>
 
       {/* Sign out */}
