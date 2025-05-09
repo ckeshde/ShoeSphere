@@ -1,4 +1,3 @@
-// storesearch.tsx
 import { useState, useEffect } from 'react';
 import {
   View,
@@ -18,15 +17,18 @@ import {
   Store,
   convertToMeters,
 } from '../../utils/filterStores';
+import useFavorites from '../../utils/FavoritesFilter'; // Import favorites hook
 
 export default function StoreSearch() {
   const [searchQuery, setSearchQuery] = useState('');
   const [matchedStores, setMatchedStores] = useState<Store[]>([]);
   const [allStores, setAllStores] = useState<Store[]>([]);
   const [selectedRadius, setSelectedRadius] = useState(5000);
+  const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
 
   const { location, errorMsg } = useCurrentLocation();
   const router = useRouter();
+  const { favorites } = useFavorites(); // Use the favorites hook
 
   const handleRadiusSelect = (radiusInKm: number) => {
     setSelectedRadius(convertToMeters(radiusInKm));
@@ -64,14 +66,15 @@ export default function StoreSearch() {
   }, []);
 
   useEffect(() => {
+    const sourceStores = showFavoritesOnly ? favorites : allStores;
     const filtered = filterStoresByNameAndDistance(
-      allStores,
+      sourceStores,
       searchQuery,
       location,
       selectedRadius
     );
     setMatchedStores(filtered);
-  }, [searchQuery, allStores, location, selectedRadius]);
+  }, [searchQuery, allStores, location, selectedRadius, favorites, showFavoritesOnly]);
 
   const handleMarkerPress = (store: Store) => {
     router.push({
@@ -88,7 +91,6 @@ export default function StoreSearch() {
       },
     });
   };
-  
 
   return (
     <View>
@@ -123,6 +125,21 @@ export default function StoreSearch() {
             </TouchableOpacity>
           ))}
         </View>
+      </View>
+
+      {/* Toggle Favorites */}
+      <View style={styles.favoriteToggleContainer}>
+        <TouchableOpacity
+          onPress={() => setShowFavoritesOnly(!showFavoritesOnly)}
+          style={[
+            styles.favoriteToggleButton,
+            showFavoritesOnly && styles.favoriteToggleButtonActive,
+          ]}
+        >
+          <Text style={styles.favoriteToggleText}>
+            {showFavoritesOnly ? 'Showing Favorites' : 'Show Favorites Only'}
+          </Text>
+        </TouchableOpacity>
       </View>
 
       <View style={styles.mapContainer}>
@@ -206,6 +223,23 @@ const styles = StyleSheet.create({
     color: 'white',
     fontWeight: 'bold',
   },
+  favoriteToggleContainer: {
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  favoriteToggleButton: {
+    paddingVertical: 8,
+    paddingHorizontal: 20,
+    borderRadius: 20,
+    backgroundColor: '#ccc',
+  },
+  favoriteToggleButtonActive: {
+    backgroundColor: '#f39c12',
+  },
+  favoriteToggleText: {
+    color: '#fff',
+    fontWeight: 'bold',
+  },
   mapContainer: {
     height: '100%',
     borderRadius: 10,
@@ -215,11 +249,5 @@ const styles = StyleSheet.create({
   map: {
     width: '100%',
     height: '100%',
-  },
-  notFound: {
-    color: 'red',
-    fontSize: 16,
-    textAlign: 'center',
-    marginTop: 10,
   },
 });
