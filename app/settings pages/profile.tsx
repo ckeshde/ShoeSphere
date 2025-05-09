@@ -12,7 +12,7 @@ export default function ProfileScreen() {
 
       {/* User photo */}
       <Image
-        source={require('../assets/usericon.png')}
+        source={require('../../assets/usericon.png')}
         style={styles.avatar}
       />
 
