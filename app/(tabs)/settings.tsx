@@ -1,109 +1,112 @@
 
-import { Feather, FontAwesome } from '@expo/vector-icons';
+import { Feather, FontAwesome, MaterialIcons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import { getAuth, signOut } from 'firebase/auth';
+import { signOut } from 'firebase/auth';
 import React from 'react';
-// import { useAuthState } from 'react-firebase-hooks/auth';
-import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useAuthState } from 'react-firebase-hooks/auth';
+import {StyleSheet, Text,TouchableOpacity, View} from 'react-native';
 import { auth } from '../firebaseConfig';
 
 export default function SettingsScreen() {
+  const [user] = useAuthState(auth);
 
-  const user = getAuth().currentUser;
-
-  // when user click signout, it can jump to login page
   const handleLogout = async () => {
     try {
       await signOut(auth);
       router.replace('/login');
-
     } catch (error) {
-      console.error('Logout error:', error);
+      console.error('Logout failed:', error);
     }
   };
 
-
-    return (
-      <View style={styles.container}>
+  return (
+    <View style={styles.container}>
       <Text style={styles.title}>Settings</Text>
 
-      {/* user and email */}
-      <View style={styles.profileContainer}>
-        <Image
-          source={require('../../assets/usericon.png')} 
-          style={styles.avatar}
-        />
-        <Text style={styles.emailText}>{user?.email || 'Guest'}</Text>
+      {/* User information */}
+      <TouchableOpacity style={styles.item} onPress={() => router.push('../settings pages/profile')}>
+        <FontAwesome name="user-circle-o" size={20} color="#333" style={styles.icon} />
+        <Text style={styles.itemText}>{user?.email || 'Guest'}</Text>
+        <Feather name="chevron-right" size={20} color="#999" style={styles.arrow} />
+      </TouchableOpacity>
+
+      {/* My favorite */}
+      <View style={styles.listContainer}>
+        <TouchableOpacity style={styles.item} onPress={() => router.push('/favorites')}>
+          <Feather name="heart" size={20} color="#e91e63" style={styles.icon} />
+          <Text style={styles.itemText}>My Favorite</Text>
+          <Feather name="chevron-right" size={20} color="#999" style={styles.arrow} />
+        </TouchableOpacity>
+
+        {/* My review */}
+        <TouchableOpacity style={styles.item} onPress={() => router.push('/review')}>
+          <MaterialIcons name="rate-review" size={20} color="#2196f3" style={styles.icon} />
+          <Text style={styles.itemText}>My Review</Text>
+          <Feather name="chevron-right" size={20} color="#999" style={styles.arrow} />
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.item} onPress={() => router.push('../settings pages/terms')}>
+          <Feather name="file-text" size={20} color="#4caf50" style={styles.icon} />
+          <Text style={styles.itemText}>Terms & Privacy</Text>
+          <Feather name="chevron-right" size={20} color="#999" style={styles.arrow} />
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.item} onPress={() => router.push('../settings pages/help')}>
+          <Feather name="help-circle" size={20} color="#03a9f4" style={styles.icon} />
+          <Text style={styles.itemText}>Help & Support</Text>
+          <Feather name="chevron-right" size={20} color="#999" style={styles.arrow} />
+        </TouchableOpacity>
       </View>
 
-      {/* favorite button */}
-      <TouchableOpacity style={styles.button} onPress={() => router.push('/favorites')}>
-        <FontAwesome name="heart" size={20} color="red" style={styles.icon} />
-        <Text style={styles.buttonText}>My Favorites</Text>
-      </TouchableOpacity>
-
-      {/* review button */}
-      <TouchableOpacity style={styles.button} onPress={() => router.push('../review')}>
-        <Feather name="edit-3" size={20} color="blue" style={styles.icon} />
-        <Text style={styles.buttonText}>My Reviews</Text>
-      </TouchableOpacity>
-
-      {/* log out button */}
+      {/* Sign out */}
       <TouchableOpacity onPress={handleLogout}>
-        <Text style={styles.logoutText}>Log out</Text>
+        <Text style={styles.logoutText}>Sign out</Text>
       </TouchableOpacity>
     </View>
-    );
-  }
-  
-  const styles = StyleSheet.create({
-    container: {
-      flex: 1,
-      paddingTop: 60,
-      alignItems: 'center',
-      backgroundColor: '#ffffff',
-    },
-    title: {
-      fontSize: 26,
-      fontWeight: 'bold',
-      marginBottom: 20,
-    },
-    profileContainer: {
-      alignItems: 'center',
-      marginBottom: 30,
-    },
-    avatar: {
-      width: 90,
-      height: 90,
-      borderRadius: 45,
-      marginBottom: 10,
-    },
-    emailText: {
-      fontSize: 20,
-      fontWeight: '500',
-    },
-    button: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      backgroundColor: '#e0e0e0',
-      padding: 18,
-      borderRadius: 12,
-      width: '80%',
-      marginBottom: 18,
-    },
-    icon: {
-      marginRight: 15,
-    },
-    buttonText: {
-      fontSize: 20,
-    },
-    logoutText: {
-      marginTop: 25,
-      color: 'red',
-      fontSize: 20,
-      fontWeight: 'bold',
-    },
-  });
-  
-  
-  
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#fff',
+    paddingTop: 60,
+    paddingHorizontal: 24,
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: '700',
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  listContainer: {
+    marginTop: 12,
+    borderRadius: 12,
+    overflow: 'hidden',
+  },
+  item: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f4f4f4',
+    padding: 16,
+    marginBottom: 10,
+    borderRadius: 12,
+  },
+  icon: {
+    marginRight: 12,
+  },
+  itemText: {
+    flex: 1,
+    fontSize: 16,
+    color: '#333',
+  },
+  arrow: {
+    marginLeft: 'auto',
+  },
+  logoutText: {
+    textAlign: 'center',
+    marginTop: 30,
+    fontSize: 16,
+    color: '#d00',
+  },
+});
