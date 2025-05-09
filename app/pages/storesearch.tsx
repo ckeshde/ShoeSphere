@@ -1,3 +1,4 @@
+// storesearch.tsx
 import { useState, useEffect } from 'react';
 import {
   View,
@@ -12,8 +13,11 @@ import { useRouter } from 'expo-router';
 import { collection, getDocs } from 'firebase/firestore';
 import { db } from '../firebaseConfig';
 import { useCurrentLocation } from '../../hooks/useCurrentLocation';
-import { filterStoresByNameAndDistance, Store, convertToMeters } from '../../utils/filterStores';
-//import Icon from 'react-native-vector-icons/FontAwesome';
+import {
+  filterStoresByNameAndDistance,
+  Store,
+  convertToMeters,
+} from '../../utils/filterStores';
 
 export default function StoreSearch() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -60,7 +64,6 @@ export default function StoreSearch() {
   }, []);
 
   useEffect(() => {
-    console.log("searchQuery:", searchQuery); // Debugging log
     const filtered = filterStoresByNameAndDistance(
       allStores,
       searchQuery,
@@ -73,31 +76,20 @@ export default function StoreSearch() {
   const handleMarkerPress = (store: Store) => {
     router.push({
       pathname: '/pages/store',
-      params: {
-        name: store.name,
-        address: store.address,
-        phone: store.phone,
-        openingHours: store.openingHours,
-        closingHours: store.closingHours,
-      },
+      params: store,
     });
   };
 
   return (
     <View>
       <Text style={styles.title}>Search for a Store</Text>
-
       <TextInput
         style={styles.input}
         placeholder="Enter store name"
         value={searchQuery}
-        onChangeText={(text) => {
-          console.log("User typing:", text); // Debugging log
-          setSearchQuery(text);
-        }}
+        onChangeText={(text) => setSearchQuery(text)}
       />
 
-      {/* Radius filter buttons */}
       <View style={styles.radiusContainer}>
         <Text style={styles.radiusLabel}>Filter by distance:</Text>
         <View style={styles.buttonGroup}>
@@ -135,11 +127,14 @@ export default function StoreSearch() {
               longitudeDelta: 0.01,
             }}
           >
-            <Marker coordinate={location} title="You are here"/>
+            <Marker coordinate={location} title="You are here" />
             {matchedStores.map((store) => (
               <Marker
                 key={store.id}
-                coordinate={{ latitude: store.latitude, longitude: store.longitude }}
+                coordinate={{
+                  latitude: store.latitude,
+                  longitude: store.longitude,
+                }}
                 title={store.name}
                 description={store.address}
                 onPress={() => handleMarkerPress(store)}

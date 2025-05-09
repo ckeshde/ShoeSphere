@@ -27,20 +27,20 @@ export default function HomeScreen() {
   }, []);
   
 
-  // return (
-  //   <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-  //     <Text>It is redirecting to the login page...</Text>
-  //   </View>
-  // );
-
-
   return (
-    <View style={styles.screen}>
-      <Text>Hello</Text>
-      <StoreSearch />
-      {/* <SeedStores/> */}
+    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+      <Text>It is redirecting to the login page...</Text>
     </View>
   );
+
+
+  // return (
+  //   <View style={styles.screen}>
+  //     <Text>Hello</Text>
+  //     <StoreSearch />
+  //     {/* <SeedStores/> */}
+  //   </View>
+  // );
 }
 
 const styles = StyleSheet.create({
