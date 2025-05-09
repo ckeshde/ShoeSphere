@@ -10,20 +10,20 @@ export default function ProfileScreen() {
     <View style={styles.container}>
       <Text style={styles.title}>User Profile</Text>
 
-      {/* profole photo */}
+      {/* User photo */}
       <Image
         source={require('../../assets/usericon.png')}
         style={styles.avatar}
       />
 
-      {/* user email */}
+      {/* User email */}
       <Text style={styles.label}>Email</Text>
-      <Text style={styles.value}>{user?.email || 'Log out'}</Text>
+      <Text style={styles.value}>{user?.email ? user.email : 'Guest'}</Text>
 
       {/* UID */}
       <Text style={styles.label}>UserID</Text>
       <Text style={styles.value}>{user?.uid || 'no'}</Text>
-s
+
     </View>
   );
 }
@@ -58,4 +58,5 @@ const styles = StyleSheet.create({
     color: '#000',
     marginBottom: 4,
   },
+  
 });
