@@ -79,8 +79,8 @@ export default function Store() {
     router.push({
       pathname: '/review',
       params: {
-        id: String(id),
-        name: String(name),
+        storeId: String(id),
+        storeName: String(name),
       },
     });
   };

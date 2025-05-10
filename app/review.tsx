@@ -1,7 +1,7 @@
 import { FontAwesome } from '@expo/vector-icons'; 
 import React, {useEffect, useState} from 'react';
-import {useRouter} from 'expo-router';
-import {collection, getDocs, orderBy, query} from 'firebase/firestore';
+import {useRouter, useLocalSearchParams} from 'expo-router';
+import {collection, getDocs, orderBy, query, where} from 'firebase/firestore';
 import { TouchableOpacity, FlatList, StyleSheet, Text, View } from 'react-native';
 import {db} from './firebaseConfig';
 
@@ -17,13 +17,15 @@ export default function ReviewScreen() {
 
   const [reviews, setReviews] = useState<Review[]>([]);
   const router = useRouter();
+  //Get store ID
+  const {storeId, storeName} = useLocalSearchParams()
 
   // get review list
   useEffect(() => {
     const fetchReviews = async () => {
       try {
         // Firestore query and dispaly the latest review
-        const q = query(collection(db, 'reviews'), orderBy('createdAt', 'desc')); //In descednding  order oftime
+        const q = query(collection(db, 'reviews'),  where('storeId', '==', storeId), orderBy('createdAt', 'desc')); //In descednding  order oftime
         const querySnapshot = await getDocs(q);
 
         const fetchedReviews: Review[] = querySnapshot.docs.map((doc) => {
@@ -84,7 +86,7 @@ export default function ReviewScreen() {
         contentContainerStyle={styles.list}
       />
       {/* Add review button */}
-      <TouchableOpacity style={styles.button} onPress={() => router.push('/addreview')}>
+      <TouchableOpacity style={styles.button} onPress={() => router.push({ pathname: '/addreview', params: { storeId } })}>
         <Text style={styles.buttonText}>Add review</Text>
       </TouchableOpacity>
     </View>
