@@ -58,8 +58,10 @@ export default function SettingsScreen() {
           <Feather name="chevron-right" size={20} color="#999" style={styles.arrow} />
         </TouchableOpacity>
 
-        <TouchableOpacity onPress={() => Linking.openURL('https://shoesphere-d37fd.web.app/')}>
-          <Text style={{ color: 'blue', marginTop: 20 }}>Team Introduce</Text>
+        <TouchableOpacity style={styles.item} onPress={() => Linking.openURL('https://shoesphere-d37fd.web.app')}>
+          <Feather name="info" size={20} color="#03a9f4" style={styles.icon} />
+          <Text style={styles.itemText}>About</Text>
+          <Feather name="chevron-right" size={20} color="#999" style={styles.arrow} />
         </TouchableOpacity>
 
        

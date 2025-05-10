@@ -18,18 +18,20 @@ export default function ReviewScreen() {
   const [reviews, setReviews] = useState<Review[]>([]);
   const router = useRouter();
 
+  // get review list
   useEffect(() => {
     const fetchReviews = async () => {
       try {
         // Firestore query and dispaly the latest review
-        const q = query(collection(db, 'reviews'), orderBy('createdAt', 'desc'));
+        const q = query(collection(db, 'reviews'), orderBy('createdAt', 'desc')); //In descednding  order oftime
         const querySnapshot = await getDocs(q);
 
         const fetchedReviews: Review[] = querySnapshot.docs.map((doc) => {
           const data = doc.data();
           return {
             id: doc.id,
-            username: data.username || 'Alice',
+            // username: data.username || 'Unknown User',
+            username: data.username?.split('@')[0]|| 'Unknown',
             content: data.content || 'Very good store!',
             rating: data.rating || 5,
             createdAt: data.createdAt?.toDate().toLocaleString() || 'N/A',
