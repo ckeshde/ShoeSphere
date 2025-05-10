@@ -1,8 +1,9 @@
-import { View, Text, Button, StyleSheet, Alert } from 'react-native';
+import { View, Text, StyleSheet, Alert } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { collection, getDocs, addDoc, deleteDoc, doc } from 'firebase/firestore';
 import { db } from '../../app/firebaseConfig';
+import CustomButton from '../../components/custom/ThemedButton';
 
 export default function Store() {
   const {
@@ -66,7 +67,7 @@ export default function Store() {
 
     try {
       await deleteDoc(doc(db, 'favorites', docId));
-      setIsFavorite(false);
+      setIsFavorite(false); // Ensure button reverts immediately
       setDocId(null);
       Alert.alert('Removed', `${name} removed from favorites`);
     } catch (error) {
@@ -94,14 +95,24 @@ export default function Store() {
 
       <View style={styles.buttonContainer}>
         {isFavorite ? (
-          <Button title="Delete from Favorites" onPress={handleRemoveFavorite} />
+          <CustomButton
+            title="Delete from Favorites"
+            onPress={handleRemoveFavorite}
+            backgroundColor="#D32F2F"
+          />
         ) : (
-          <Button title="Add to Favorites" onPress={handleAddFavorite} />
+          <CustomButton
+            title="Add to Favorites"
+            onPress={handleAddFavorite}
+            backgroundColor="#424242"
+          />
         )}
 
-        <View style={{ marginTop: 10 }}>
-          <Button title="Go to Reviews" onPress={handleGoToReview} />
-        </View>
+        <CustomButton
+          title="Go to Reviews"
+          onPress={handleGoToReview}
+          backgroundColor="#424242"
+        />
       </View>
     </View>
   );

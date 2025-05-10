@@ -1,64 +1,40 @@
-import React from "react";
-import {
-  Dimensions,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  TouchableOpacityProps,
-} from "react-native";
-import { globalStyles } from "../../styles";
+// components/CustomButton.tsx
+import React from 'react';
+import { Text, TouchableOpacity, StyleSheet } from 'react-native';
 
-
-interface Button_Props extends TouchableOpacityProps {
-  text: string;
+type CustomButtonProps = {
+  title: string;
   onPress: () => void;
-  type?: "success" | "danger";
-}
+  backgroundColor?: string;
+  textColor?: string;
+};
 
-const Button = ({
-  text,
+export default function CustomButton({
+  title,
   onPress,
-  type = "success",
-  style}: Button_Props) => {
+  backgroundColor = '#007bff',
+  textColor = '#fff',
+}: CustomButtonProps) {
   return (
     <TouchableOpacity
       onPress={onPress}
-      style={[
-        buttonStyle.buttonContainer,
-        buttonStyle[type],
-        type === "danger" && {
-          borderWidth: 1,
-        },
-        style,
-      ]}
+      style={[styles.button, { backgroundColor }]}
     >
-      <Text style={[buttonStyle.buttonText, buttonStyle[type]]}>{text}</Text>
+      <Text style={[styles.buttonText, { color: textColor }]}>{title}</Text>
     </TouchableOpacity>
   );
-};
+}
 
-const buttonStyle = StyleSheet.create({
-  buttonContainer: {
-    borderRadius: 10,
-    marginVertical: 10,
-    height: 40,
-    width: "100%",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  success: {
-    backgroundColor: "#83f28f",
-  },
-  danger: {
-    borderColor: globalStyles.secondary.color,
-    backgroundColor: "transparent",
-    color: globalStyles.secondary.color,
+const styles = StyleSheet.create({
+  button: {
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginVertical: 5,
   },
   buttonText: {
-    color: "#352F36",
-    fontWeight:700,
-    fontSize:14
+    fontSize: 16,
+    fontWeight: '600',
   },
 });
-
-export default Button;
