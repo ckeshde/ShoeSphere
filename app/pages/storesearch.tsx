@@ -12,17 +12,23 @@ import { useRouter } from 'expo-router';
 import { collection, getDocs } from 'firebase/firestore';
 import { db } from '../firebaseConfig';
 import { useCurrentLocation } from '../../hooks/useCurrentLocation';
-import { filterStoresByNameAndDistance, Store, convertToMeters } from '../../utils/filterStores';
-//import Icon from 'react-native-vector-icons/FontAwesome';
+import {
+  filterStoresByNameAndDistance,
+  Store,
+  convertToMeters,
+} from '../../utils/filterStores';
+import useFavorites from '../../utils/FavoritesFilter'; // Import favorites hook
 
 export default function StoreSearch() {
   const [searchQuery, setSearchQuery] = useState('');
   const [matchedStores, setMatchedStores] = useState<Store[]>([]);
   const [allStores, setAllStores] = useState<Store[]>([]);
   const [selectedRadius, setSelectedRadius] = useState(5000);
+  const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
 
   const { location, errorMsg } = useCurrentLocation();
   const router = useRouter();
+  const { favorites } = useFavorites(); // Use the favorites hook
 
   const handleRadiusSelect = (radiusInKm: number) => {
     setSelectedRadius(convertToMeters(radiusInKm));
@@ -60,25 +66,28 @@ export default function StoreSearch() {
   }, []);
 
   useEffect(() => {
-    console.log("searchQuery:", searchQuery); // Debugging log
+    const sourceStores = showFavoritesOnly ? favorites : allStores;
     const filtered = filterStoresByNameAndDistance(
-      allStores,
+      sourceStores,
       searchQuery,
       location,
       selectedRadius
     );
     setMatchedStores(filtered);
-  }, [searchQuery, allStores, location, selectedRadius]);
+  }, [searchQuery, allStores, location, selectedRadius, favorites, showFavoritesOnly]);
 
   const handleMarkerPress = (store: Store) => {
     router.push({
       pathname: '/pages/store',
       params: {
-        name: store.name,
-        address: store.address,
-        phone: store.phone,
-        openingHours: store.openingHours,
-        closingHours: store.closingHours,
+        id: String(store.id),
+        name: String(store.name),
+        address: String(store.address),
+        phone: String(store.phone),
+        openingHours: String(store.openingHours),
+        closingHours: String(store.closingHours),
+        latitude: String(store.latitude),
+        longitude: String(store.longitude),
       },
     });
   };
@@ -86,18 +95,13 @@ export default function StoreSearch() {
   return (
     <View>
       <Text style={styles.title}>Search for a Store</Text>
-
       <TextInput
         style={styles.input}
         placeholder="Enter store name"
         value={searchQuery}
-        onChangeText={(text) => {
-          console.log("User typing:", text); // Debugging log
-          setSearchQuery(text);
-        }}
+        onChangeText={(text) => setSearchQuery(text)}
       />
 
-      {/* Radius filter buttons */}
       <View style={styles.radiusContainer}>
         <Text style={styles.radiusLabel}>Filter by distance:</Text>
         <View style={styles.buttonGroup}>
@@ -123,6 +127,21 @@ export default function StoreSearch() {
         </View>
       </View>
 
+      {/* Toggle Favorites */}
+      <View style={styles.favoriteToggleContainer}>
+        <TouchableOpacity
+          onPress={() => setShowFavoritesOnly(!showFavoritesOnly)}
+          style={[
+            styles.favoriteToggleButton,
+            showFavoritesOnly && styles.favoriteToggleButtonActive,
+          ]}
+        >
+          <Text style={styles.favoriteToggleText}>
+            {showFavoritesOnly ? 'Showing Favorites' : 'Show Favorites Only'}
+          </Text>
+        </TouchableOpacity>
+      </View>
+
       <View style={styles.mapContainer}>
         {location ? (
           <MapView
@@ -135,11 +154,14 @@ export default function StoreSearch() {
               longitudeDelta: 0.01,
             }}
           >
-            <Marker coordinate={location} title="You are here"/>
+            <Marker coordinate={location} title="You are here" />
             {matchedStores.map((store) => (
               <Marker
                 key={store.id}
-                coordinate={{ latitude: store.latitude, longitude: store.longitude }}
+                coordinate={{
+                  latitude: store.latitude,
+                  longitude: store.longitude,
+                }}
                 title={store.name}
                 description={store.address}
                 onPress={() => handleMarkerPress(store)}
@@ -201,6 +223,23 @@ const styles = StyleSheet.create({
     color: 'white',
     fontWeight: 'bold',
   },
+  favoriteToggleContainer: {
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  favoriteToggleButton: {
+    paddingVertical: 8,
+    paddingHorizontal: 20,
+    borderRadius: 20,
+    backgroundColor: '#ccc',
+  },
+  favoriteToggleButtonActive: {
+    backgroundColor: '#f39c12',
+  },
+  favoriteToggleText: {
+    color: '#fff',
+    fontWeight: 'bold',
+  },
   mapContainer: {
     height: '100%',
     borderRadius: 10,
@@ -210,11 +249,5 @@ const styles = StyleSheet.create({
   map: {
     width: '100%',
     height: '100%',
-  },
-  notFound: {
-    color: 'red',
-    fontSize: 16,
-    textAlign: 'center',
-    marginTop: 10,
   },
 });
