@@ -1,4 +1,4 @@
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import {addDoc, collection, Timestamp} from 'firebase/firestore';
 import React , {useState} from 'react';
 import { Alert, Button, StyleSheet, Text, TextInput, View } from 'react-native';
@@ -11,6 +11,9 @@ export default function AddReviewScreen() {
     const [content, setContent] = useState('');
     const [rating, setRating] = useState('');
     const router = useRouter();
+    //Get store ID
+    const {storeId} = useLocalSearchParams()
+    
 
     const handleSubmit = async () => {
         if ( !content || !rating) {
@@ -25,6 +28,7 @@ export default function AddReviewScreen() {
                 rating: Number(rating),
                 content,
                 createdAt: Timestamp.now(),
+                storeId: storeId,
             });
             Alert.alert('The review was submitted successfully!')
             router.back();
