@@ -36,7 +36,6 @@ export default function HomeScreen() {
 
   return (
     <View style={styles.screen}>
-      <Text>Hello</Text>
       <StoreSearch />
       {/* <SeedStores/> */}
     </View>
@@ -48,11 +47,5 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 16,
     backgroundColor: '#fff',
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 10,
-    textAlign: 'center',
   },
 });
