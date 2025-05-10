@@ -1,8 +1,9 @@
-import { View, Text, Button, StyleSheet, Alert } from 'react-native';
+import { View, Text, StyleSheet, Alert } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { collection, getDocs, addDoc, deleteDoc, doc } from 'firebase/firestore';
 import { db } from '../../app/firebaseConfig';
+import CustomButton from '../../components/custom/ThemedButton';
 
 export default function Store() {
   const {
@@ -66,7 +67,7 @@ export default function Store() {
 
     try {
       await deleteDoc(doc(db, 'favorites', docId));
-      setIsFavorite(false);
+      setIsFavorite(false); // Ensure button reverts immediately
       setDocId(null);
       Alert.alert('Removed', `${name} removed from favorites`);
     } catch (error) {
@@ -86,22 +87,51 @@ export default function Store() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>{name}</Text>
-      <Text>Address: {address}</Text>
-      <Text>Phone: {phone}</Text>
-      <Text>Opening Hours: {openingHours}</Text>
-      <Text>Closing Hours: {closingHours}</Text>
+      <View style={styles.detailsCard}>
+  <Text style={styles.storeName}>{name}</Text>
+
+  <View style={styles.detailRow}>
+    <Text style={styles.label}>📍 Address:</Text>
+    <Text style={styles.value}>{address}</Text>
+  </View>
+
+  <View style={styles.detailRow}>
+    <Text style={styles.label}>📞 Phone:</Text>
+    <Text style={styles.value}>{phone}</Text>
+  </View>
+
+  <View style={styles.detailRow}>
+    <Text style={styles.label}>🕒 Opening Hours:</Text>
+    <Text style={styles.value}>{openingHours}</Text>
+  </View>
+
+  <View style={styles.detailRow}>
+    <Text style={styles.label}>🕕 Closing Hours:</Text>
+    <Text style={styles.value}>{closingHours}</Text>
+  </View>
+</View>
+
 
       <View style={styles.buttonContainer}>
         {isFavorite ? (
-          <Button title="Delete from Favorites" onPress={handleRemoveFavorite} />
+          <CustomButton
+            title="Delete from Favorites"
+            onPress={handleRemoveFavorite}
+            backgroundColor="#D32F2F"
+          />
         ) : (
-          <Button title="Add to Favorites" onPress={handleAddFavorite} />
+          <CustomButton
+            title="Add to Favorites"
+            onPress={handleAddFavorite}
+            backgroundColor="#424242"
+          />
         )}
 
-        <View style={{ marginTop: 10 }}>
-          <Button title="Go to Reviews" onPress={handleGoToReview} />
-        </View>
+        <CustomButton
+          title="Go to Reviews"
+          onPress={handleGoToReview}
+          backgroundColor="#424242"
+        />
       </View>
     </View>
   );
@@ -119,4 +149,42 @@ const styles = StyleSheet.create({
   buttonContainer: {
     marginTop: 20,
   },
+  detailsCard: {
+  backgroundColor: '#ffffff',
+  borderRadius: 12,
+  padding: 16,
+  shadowColor: '#000',
+  shadowOffset: { width: 0, height: 2 },
+  shadowOpacity: 0.1,
+  shadowRadius: 6,
+  elevation: 3,
+  marginBottom: 20,
+},
+
+storeName: {
+  fontSize: 26,
+  fontWeight: 'bold',
+  color: '#333',
+  marginBottom: 12,
+  textAlign: 'center',
+},
+
+detailRow: {
+  flexDirection: 'row',
+  marginBottom: 8,
+  alignItems: 'flex-start',
+},
+
+label: {
+  fontWeight: '600',
+  width: 120,
+  color: '#444',
+},
+
+value: {
+  flex: 1,
+  color: '#666',
+  fontSize: 15,
+},
+
 });

@@ -1,4 +1,3 @@
-// pages/favorites.tsx
 import { useEffect, useState } from 'react';
 import {
   View,
@@ -8,7 +7,7 @@ import {
   TouchableOpacity,
   ActivityIndicator,
 } from 'react-native';
-import { collection, getDocs } from 'firebase/firestore';
+import { collection, onSnapshot } from 'firebase/firestore';
 import { db } from '../firebaseConfig';
 import { useRouter } from 'expo-router';
 import { FavoriteStore } from '../../utils/addFavorite';
@@ -19,26 +18,24 @@ export default function Favorites() {
   const router = useRouter();
 
   useEffect(() => {
-    const fetchFavorites = async () => {
-      try {
-        const favRef = collection(db, 'favorites');
-        const snapshot = await getDocs(favRef);
-        const favList: FavoriteStore[] = [];
+    const favRef = collection(db, 'favorites');
 
-        snapshot.forEach((doc) => {
-          const data = doc.data() as FavoriteStore;
-          favList.push(data);
-        });
-
+    // Real-time listener
+    const unsubscribe = onSnapshot(
+      favRef,
+      (snapshot) => {
+        const favList: FavoriteStore[] = snapshot.docs.map((doc) => doc.data() as FavoriteStore);
         setFavorites(favList);
-      } catch (error) {
+        setLoading(false);
+      },
+      (error) => {
         console.error('Error fetching favorites:', error);
-      } finally {
         setLoading(false);
       }
-    };
+    );
 
-    fetchFavorites();
+    // Clean up listener when component unmounts
+    return () => unsubscribe();
   }, []);
 
   const handleStorePress = (store: FavoriteStore) => {
@@ -55,7 +52,6 @@ export default function Favorites() {
         longitude: String(store.longitude),
       },
     });
-    
   };
 
   if (loading) {

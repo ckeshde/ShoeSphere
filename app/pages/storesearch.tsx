@@ -10,6 +10,7 @@ import {
 import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
 import { useRouter } from 'expo-router';
 import { collection, getDocs } from 'firebase/firestore';
+import {  FontAwesome } from '@expo/vector-icons';
 import { db } from '../firebaseConfig';
 import { useCurrentLocation } from '../../hooks/useCurrentLocation';
 import {
@@ -97,13 +98,12 @@ export default function StoreSearch() {
       <Text style={styles.title}>Search for a Store</Text>
       <TextInput
         style={styles.input}
-        placeholder="Enter store name"
+        placeholder="Search stores"
         value={searchQuery}
         onChangeText={(text) => setSearchQuery(text)}
       />
 
       <View style={styles.radiusContainer}>
-        <Text style={styles.radiusLabel}>Filter by distance:</Text>
         <View style={styles.buttonGroup}>
           {[5000, 10000, 30000].map((radius) => (
             <TouchableOpacity
@@ -124,23 +124,28 @@ export default function StoreSearch() {
               </Text>
             </TouchableOpacity>
           ))}
-        </View>
-      </View>
 
-      {/* Toggle Favorites */}
-      <View style={styles.favoriteToggleContainer}>
-        <TouchableOpacity
+          <TouchableOpacity
           onPress={() => setShowFavoritesOnly(!showFavoritesOnly)}
           style={[
             styles.favoriteToggleButton,
             showFavoritesOnly && styles.favoriteToggleButtonActive,
           ]}
         >
-          <Text style={styles.favoriteToggleText}>
-            {showFavoritesOnly ? 'Showing Favorites' : 'Show Favorites Only'}
-          </Text>
+          <FontAwesome
+            name={showFavoritesOnly ? 'heart' : 'heart-o'} 
+            size={24}
+            color={showFavoritesOnly ? 'red' : 'gray'}
+          />
         </TouchableOpacity>
+        </View>
+        
       </View>
+
+     
+      {/* <View style={styles.favoriteToggleContainer}>
+        
+      </View> */}
 
       <View style={styles.mapContainer}>
         {location ? (
@@ -180,7 +185,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    marginBottom: 10,
+    marginBottom: 5,
     textAlign: 'center',
   },
   input: {
@@ -212,8 +217,8 @@ const styles = StyleSheet.create({
     marginHorizontal: 5,
   },
   radiusButtonSelected: {
-    backgroundColor: '#007bff',
-    borderColor: '#007bff',
+    backgroundColor: '#424242',
+    borderColor: '#000',
   },
   radiusButtonText: {
     fontSize: 14,
@@ -231,10 +236,10 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     paddingHorizontal: 20,
     borderRadius: 20,
-    backgroundColor: '#ccc',
+    backgroundColor: '#eee',
   },
   favoriteToggleButtonActive: {
-    backgroundColor: '#f39c12',
+    backgroundColor: '#eee',
   },
   favoriteToggleText: {
     color: '#fff',
