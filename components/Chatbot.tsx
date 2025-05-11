@@ -10,6 +10,7 @@ import {
     Platform,
 } from 'react-native';
 import axios from 'axios';
+import CustomButton from './custom/ThemedButton';
 
 const Chatbot = () => {
     const [input, setInput] = useState('');
@@ -29,7 +30,7 @@ const Chatbot = () => {
                 'https://api.openai.com/v1/chat/completions',
                 {
                     model: 'gpt-4o-mini',
-                    store: true, 
+                    store: true,
                     messages: [
                         {
                             role: 'system',
@@ -86,7 +87,13 @@ const Chatbot = () => {
                         style={styles.input}
                         editable={!loading}
                     />
-                    <Button title="Send" onPress={handleSend} disabled={loading} />
+                    <CustomButton
+                        title="Send"
+                        onPress={handleSend}
+                        backgroundColor={loading ? '#ccc' : '#424242'}
+                        textColor="#fff"
+                    />
+
                 </View>
             </View>
         </KeyboardAvoidingView>
@@ -96,9 +103,9 @@ const Chatbot = () => {
 export default Chatbot;
 
 const styles = StyleSheet.create({
-    container: { flex: 1, padding: 10 },
+    container: { flex: 1, padding: 10, },
     chat: { flex: 1, marginBottom: 10 },
-    inputContainer: { flexDirection: 'row', alignItems: 'center' },
+    inputContainer: { flexDirection: 'row', alignItems: 'center', padding: 50 },
     input: {
         flex: 1,
         borderWidth: 1,
