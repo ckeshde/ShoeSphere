@@ -58,16 +58,30 @@ export default function ReviewScreen() {
   }, [storeId]);
 
   // Delete button
-  const handleDelete = async (id: string) => {
-    try {
-      await deleteDoc(doc(db, 'reviews', id));
-      setReviews(prev => prev.filter(review => review.id !== id));
-      Alert.alert('Deleted', 'Your review was deleted successfully');
-    } catch (error) {
-      console.error('Failed to delete review:', error);
-      Alert.alert('Error', 'Failed to delete review');
-    }
+  const handleDelete = (id: string) => {
+    Alert.alert(
+      'Confirm Deletion',
+      'Are you sure you want to delete this review?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await deleteDoc(doc(db, 'reviews', id));
+              Alert.alert('Deleted!', 'The review has been deleted.');
+              // Refresh list
+              setReviews(prev => prev.filter(review => review.id !== id));
+            } catch (error) {
+              Alert.alert('Error', 'Failed to delete the review');
+            }
+          },
+        },
+      ]
+    );
   };
+  
 
   // Render star ratings
   const renderStars = (rating: number) => {
@@ -120,6 +134,10 @@ export default function ReviewScreen() {
       <TouchableOpacity style={styles.button} onPress={() => router.push({ pathname: '/addreview', params: { storeId, storeName } })}>
         <Text style={styles.buttonText}>Add review</Text>
       </TouchableOpacity>
+
+      
+      
+        
     </View>
   );
 }

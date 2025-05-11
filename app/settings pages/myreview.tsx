@@ -56,15 +56,31 @@ export default function MyReviewPage() {
   }, []);
 
   // Delete review
-  const handleDelete = async (id: string) => {
-    try {
-      await deleteDoc(doc(db, 'reviews', id));
-      
-      setReviews(prev => prev.filter(r => r.id !== id));
-    } catch (err) {
-      Alert.alert('Fail to delete', 'Please try again later');
-    }
+  const handleDelete = (reviewId: string) => {
+    Alert.alert(
+      'Confirm Deletion',
+      'Are you sure you want to delete this review?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await deleteDoc(doc(db, 'reviews', reviewId));
+              Alert.alert('Deleted!', 'The review has been deleted.');
+              // Refresh list
+              setReviews(prev => prev.filter(item => item.id !== reviewId));
+            } catch (error) {
+              Alert.alert('Error', 'Failed to delete the review');
+            }
+          },
+        },
+      ]
+    );
   };
+
+
 
   // Render rating
   const renderStars = (rating: number) => {
