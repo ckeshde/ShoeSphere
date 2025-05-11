@@ -41,8 +41,8 @@ const Chatbot = () => {
                     ],
                 },
                 {
-                    headers: {
-                        Authorization: 'Bearer API_KEY', // Replace this with API KEY PROVIDED
+                   headers: {
+                        Authorization: 'Bearer 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', // Replace this with API KEY PROVIDED
                         'Content-Type': 'application/json',
                     },
                 }
