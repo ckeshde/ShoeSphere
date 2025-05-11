@@ -40,7 +40,7 @@ export default function SettingsScreen() {
         </TouchableOpacity>
 
         {/* My review */}
-        <TouchableOpacity style={styles.item} onPress={() => router.push('/review')}>
+        <TouchableOpacity style={styles.item} onPress={() => router.push('../settings pages/myreview')}>
           <MaterialIcons name="rate-review" size={20} color="#2196f3" style={styles.icon} />
           <Text style={styles.itemText}>My Review</Text>
           <Feather name="chevron-right" size={20} color="#999" style={styles.arrow} />
