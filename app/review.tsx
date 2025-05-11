@@ -123,7 +123,7 @@ export default function ReviewScreen() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>{storeName}Reviews</Text>
+      <Text style={styles.title}>{storeName} Reviews</Text>
       <FlatList
         data={reviews}
         renderItem={renderItem}
