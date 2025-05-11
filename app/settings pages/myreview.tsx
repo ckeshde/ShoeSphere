@@ -1,32 +1,32 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, StyleSheet, TouchableOpacity, Alert } from 'react-native';
-import { collection, query, where, getDocs, deleteDoc, doc, orderBy } from 'firebase/firestore';
-import { FontAwesome } from '@expo/vector-icons';
-import { db } from '../firebaseConfig';
+import { Text, View, StyleSheet, FlatList, TouchableOpacity, Alert } from 'react-native';
+import { collection, deleteDoc, doc, getDocs, query, where, orderBy } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
-import {useRouter} from 'expo-router';
+import { db } from '../firebaseConfig';
+import { FontAwesome } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 
 type Review = {
   id: string;
   storeId: string;
-  storeName?: string;
+  storeName?: string;  
   username: string;
   content: string;
   rating: number;
   createdAt: string;
 };
 
-export default function MyReviewsScreen() {
+export default function MyReviewPage() {
   const [reviews, setReviews] = useState<Review[]>([]);
   const user = getAuth().currentUser;
-
   const router = useRouter();
 
-  // Load the reviews of current user
+  // Load the reviews fo the current user
   useEffect(() => {
     const fetchMyReviews = async () => {
       try {
         if (!user) return;
+
         const q = query(
           collection(db, 'reviews'),
           where('uid', '==', user.uid),
@@ -55,49 +55,57 @@ export default function MyReviewsScreen() {
     fetchMyReviews();
   }, []);
 
-  // Render rating
-  const renderStars = (rating: number) => (
-    <View style={styles.starRow}>
-      {[...Array(5)].map((_, i) => (
-        <FontAwesome
-          key={i}
-          name={i < rating ? 'star' : 'star-o'}
-          size={16}
-          color="#FFD700"
-        />
-      ))}
-    </View>
-  );
-
   // Delete review
   const handleDelete = async (id: string) => {
     try {
       await deleteDoc(doc(db, 'reviews', id));
+      
       setReviews(prev => prev.filter(r => r.id !== id));
     } catch (err) {
       Alert.alert('Fail to delete', 'Please try again later');
     }
   };
 
-  // The displayed content of each review
+  // Render rating
+  const renderStars = (rating: number) => {
+    return (
+      <View style={{ flexDirection: 'row', marginBottom: 4 }}>
+        {[...Array(5)].map((_, i) => (
+          <FontAwesome
+            key={i}
+            name={i < rating ? 'star' : 'star-o'}
+            size={16}
+            color="#FFD700"
+          />
+        ))}
+      </View>
+    );
+  };
+
+  // Each review renders the item
   const renderItem = ({ item }: { item: Review }) => (
-    <View style={styles.card}>
+    <TouchableOpacity
+      style={styles.card}
+      onPress={() => {
+        router.push({
+          pathname: '/review',
+          params: {
+            storeId: item.storeId,
+            storeName: item.storeName || '',
+          },
+        });
+      }}
+    >
       <Text style={styles.username}>{item.username}</Text>
       {renderStars(item.rating)}
       <Text style={styles.content}>{item.content}</Text>
-      <Text style={styles.timestamp}>{item.createdAt}</Text>
-
-      <TouchableOpacity
-        onPress={() =>
-          Alert.alert('Confirm delete', 'Are you sure you want to delete this review', [
-            { text: 'Cancel' },
-            { text: 'Delete', style: 'destructive', onPress: () => handleDelete(item.id) },
-          ])
-        }
-      >
-        <Text style={styles.delete}>Delete</Text>
-      </TouchableOpacity>
-    </View>
+      <View style={styles.footerRow}>
+        <Text style={styles.timestamp}>{item.createdAt}</Text>
+        <TouchableOpacity onPress={() => handleDelete(item.id)}>
+          <Text style={styles.deleteText}>Delete</Text>
+        </TouchableOpacity>
+      </View>
+    </TouchableOpacity>
   );
 
   return (
@@ -105,27 +113,30 @@ export default function MyReviewsScreen() {
       <Text style={styles.title}>My review</Text>
       <FlatList
         data={reviews}
-        keyExtractor={item => item.id}
         renderItem={renderItem}
-        contentContainerStyle={styles.list}
+        keyExtractor={(item) => item.id}
+        contentContainerStyle={{ paddingBottom: 100 }}
       />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
-  title: { fontSize: 20, fontWeight: 'bold', margin: 16 },
-  list: { paddingHorizontal: 16 },
+  container: { flex: 1, padding: 16, backgroundColor: '#fff' },
+  title: { fontSize: 20, fontWeight: 'bold', marginBottom: 12 },
   card: {
+    backgroundColor: '#f4f4f4',
+    borderRadius: 10,
+    padding: 16,
     marginBottom: 12,
-    padding: 14,
-    backgroundColor: '#f2f2f2',
-    borderRadius: 8,
   },
-  username: { fontWeight: 'bold', marginBottom: 4 },
-  content: { marginVertical: 6 },
-  timestamp: { fontSize: 12, color: '#999', textAlign: 'right' },
-  delete: { color: 'red', textAlign: 'right', marginTop: 8 },
-  starRow: { flexDirection: 'row', marginBottom: 4 },
+  username: { fontWeight: 'bold', fontSize: 16 },
+  content: { fontSize: 14, marginVertical: 8 },
+  timestamp: { fontSize: 12, color: '#888' },
+  deleteText: { color: 'red', fontWeight: 'bold', marginLeft: 16 },
+  footerRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
 });

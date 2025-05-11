@@ -1,13 +1,16 @@
 import { FontAwesome } from '@expo/vector-icons'; 
 import React, {useEffect, useState} from 'react';
 import {useRouter, useLocalSearchParams} from 'expo-router';
-import {collection, getDocs, orderBy, query, where} from 'firebase/firestore';
-import { TouchableOpacity, FlatList, StyleSheet, Text, View } from 'react-native';
+import {collection, getDocs, orderBy, query, where, deleteDoc, doc} from 'firebase/firestore';
+import { TouchableOpacity, FlatList, StyleSheet, Text, View, Alert } from 'react-native';
 import {db} from './firebaseConfig';
+import { getAuth } from 'firebase/auth';
+
 
 type Review = {
   id: string;
   username: string;
+  uid?: string;
   content: string;
   rating: number;
   createdAt: string;
@@ -17,8 +20,13 @@ export default function ReviewScreen() {
 
   const [reviews, setReviews] = useState<Review[]>([]);
   const router = useRouter();
+  const currentUser = getAuth().currentUser;
+
+  // const isOwnReview = item.uid === currentUser?.uid;
   //Get store ID
   const {storeId, storeName} = useLocalSearchParams()
+
+  
 
   // get review list
   useEffect(() => {
@@ -26,59 +34,82 @@ export default function ReviewScreen() {
       try {
         // Firestore query and dispaly the latest review
         const q = query(collection(db, 'reviews'),  where('storeId', '==', storeId), orderBy('createdAt', 'desc')); //In descednding  order oftime
-        const querySnapshot = await getDocs(q);
+        const snapshot = await getDocs(q);
 
-        const fetchedReviews: Review[] = querySnapshot.docs.map((doc) => {
+        const fetched = snapshot.docs.map((doc) => {
           const data = doc.data();
           return {
             id: doc.id,
             // username: data.username || 'Unknown User',
             username: data.username?.split('@')[0]|| 'Unknown',
-            content: data.content || 'Very good store!',
-            rating: data.rating || 5,
+            uid: data.uid,
+            content: data.content,
+            rating: data.rating,
             createdAt: data.createdAt?.toDate().toLocaleString() || 'N/A',
           };
         });
-        setReviews(fetchedReviews);
+        setReviews(fetched);
       } catch (error) {
         console.error('Error fetching reviews:', error);
       }
     };
 
     fetchReviews();
-  }, []);
+  }, [storeId]);
+
+  // Delete button
+  const handleDelete = async (id: string) => {
+    try {
+      await deleteDoc(doc(db, 'reviews', id));
+      setReviews(prev => prev.filter(review => review.id !== id));
+      Alert.alert('Deleted', 'Your review was deleted successfully');
+    } catch (error) {
+      console.error('Failed to delete review:', error);
+      Alert.alert('Error', 'Failed to delete review');
+    }
+  };
 
   // Render star ratings
   const renderStars = (rating: number) => {
-    const stars = [];
-    for (let i = 1; i <= 5; i++) {
-      stars.push(
-        <FontAwesome
-          key={i}
-          // full star is star, empty star is star-o
-          name={i <= rating ? 'star' : 'star-o'}
-          size={16}
-          color="#FFD700"
-          style={{ marginRight: 2 }}
-        />
+    return( <View style={styles.starRow}>
+      {[...Array(5)].map((_, index) => (
+                <FontAwesome
+                key={index}
+                // full star is star, empty star is star-o
+                name={index <= rating ? 'star' : 'star-o'}
+                size={16}
+                color="#FFD700"
+              />
+      ))}
+      </View>
       );
-    }
-    return <View style={styles.starRow}>{stars}</View>;
   };
+// 
 
-  // render each review
-  const renderItem = ({ item }: { item: Review }) => (
-    <View style={styles.card}>
-      <Text style={styles.username}>{item.username}</Text>
-      {renderStars(item.rating)}
-      <Text style={styles.content}>{item.content}</Text>
-      <Text style={styles.timestamp}>{item.createdAt}</Text>
-    </View>
-  );
+  const renderItem = ({ item }: { item: Review }) => {
+    const isOwnReview = item.uid === currentUser?.uid;
+    return (
+      <View style={[styles.card, isOwnReview && styles.ownCard]}>
+        <Text style={styles.username}>{item.username}</Text>
+        {renderStars(item.rating)}
+        <Text style={styles.content}>{item.content}</Text>
+        <View style={styles.footerRow}>
+          <Text style={styles.timestamp}>{item.createdAt}</Text>
+          {isOwnReview && (
+            <TouchableOpacity onPress={() => handleDelete(item.id)}>
+              <Text style={styles.deleteText}>Delete</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+      </View>
+    );
+  };
+  
+
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Reviews</Text>
+      <Text style={styles.title}>{storeName}Reviews</Text>
       <FlatList
         data={reviews}
         renderItem={renderItem}
@@ -86,7 +117,7 @@ export default function ReviewScreen() {
         contentContainerStyle={styles.list}
       />
       {/* Add review button */}
-      <TouchableOpacity style={styles.button} onPress={() => router.push({ pathname: '/addreview', params: { storeId } })}>
+      <TouchableOpacity style={styles.button} onPress={() => router.push({ pathname: '/addreview', params: { storeId, storeName } })}>
         <Text style={styles.buttonText}>Add review</Text>
       </TouchableOpacity>
     </View>
@@ -108,26 +139,19 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     padding: 16,
     backgroundColor: '#f4f4f4',
-    borderRadius: 10,
+    borderRadius: 8,
   },
-  username: {
-    fontWeight: 'bold',
-    fontSize: 16,
-    marginBottom: 4,
+  ownCard: {
+    borderWidth: 1.5,
+    borderColor: '#007AFF',
+    backgroundColor: '#e7f1ff',
   },
-  content: {
-    fontSize: 14,
-    marginVertical: 6,
-  },
-  timestamp: {
-    fontSize: 12,
-    color: '#999',
-    textAlign: 'right',
-  },
-  starRow: {
-    flexDirection: 'row',
-    marginBottom: 4,
-  },
+  username: { fontWeight: 'bold', marginBottom: 4 },
+  content: { fontSize: 14, marginVertical: 6 },
+  starRow: { flexDirection: 'row', marginBottom: 4 },
+  footerRow: { flexDirection: 'row', justifyContent: 'space-between' },
+  timestamp: { fontSize: 12, color: '#888' },
+  deleteText: { color: 'red', fontSize: 13 },
   button: {
     position: 'absolute',
     bottom: 24,
@@ -137,9 +161,5 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     borderRadius: 8,
   },
-  buttonText: {
-    color: '#fff',
-    fontSize: 15,
-  },
-});
+  buttonText: { color: '#fff', fontSize: 15 },});
 
