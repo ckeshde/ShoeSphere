@@ -25,8 +25,9 @@ export default function AddReviewScreen() {
         try {
             await addDoc(collection(db, 'reviews'), {
                 username: user?.email?.split('@')[0] || 'guest', //Automatically obtain the email prefix
+                uid: user?.uid,
                 rating: Number(rating),
-                content,
+                content: content,
                 createdAt: Timestamp.now(),
                 storeId: storeId,
             });
