@@ -1,0 +1,17 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`HomeScreen matches the snapshot 1`] = `
+<View
+  style={
+    {
+      "backgroundColor": "#fff",
+      "flex": 1,
+      "padding": 16,
+    }
+  }
+>
+  <Text>
+    Mock StoreSearch
+  </Text>
+</View>
+`;
